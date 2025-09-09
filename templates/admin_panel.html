@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }} - Admin Control Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --dark-color: #1f2937;
+            --light-color: #f8fafc;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .admin-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            min-height: calc(100vh - 40px);
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            border-radius: 20px 20px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .admin-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .admin-header h1 {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .admin-nav {
+            background: var(--dark-color);
+            padding: 0;
+            border-radius: 0;
+        }
+
+        .nav-pills .nav-link {
+            color: #9ca3af;
+            border-radius: 0;
+            padding: 1rem 1.5rem;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-pills .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-pills .nav-link.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card.success {
+            border-left-color: var(--success-color);
+        }
+
+        .stat-card.warning {
+            border-left-color: var(--warning-color);
+        }
+
+        .stat-card.danger {
+            border-left-color: var(--danger-color);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark-color);
+            margin: 0;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            opacity: 0.7;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .table {
+            margin: 0;
+        }
+
+        .table thead th {
+            background: var(--light-color);
+            border: none;
+            font-weight: 600;
+            color: var(--dark-color);
+            padding: 1rem;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            border-color: #e5e7eb;
+            vertical-align: middle;
+        }
+
+        .badge {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 500;
+        }
+
+        .btn {
+            border-radius: 10px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .control-button {
+            width: 100%;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-online {
+            background: var(--success-color);
+            box-shadow: 0 0 10px rgba(5, 150, 105, 0.5);
+        }
+
+        .status-offline {
+            background: var(--danger-color);
+            box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+        }
+
+        .tab-content {
+            padding: 2rem;
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+            padding: 1rem 1.5rem;
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+            padding: 0.75rem 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        @media (max-width: 768px) {
+            .admin-container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+
+            .admin-header {
+                padding: 1.5rem;
+                border-radius: 15px 15px 0 0;
+            }
+
+            .stat-card {
+                margin-bottom: 1rem;
+            }
+
+            .tab-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="admin-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="fas fa-shield-alt me-3"></i>{{ app_name }} Admin</h1>
+                    <p class="mb-0 opacity-75">Complete Control Panel</p>
+                </div>
+                <div class="text-end">
+                    <div class="mb-2">
+                        <span class="status-indicator status-online"></span>
+                        <span>System Online</span>
+                    </div>
+                    <small>Last updated: <span id="lastUpdate">{{ current_time }}</span></small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="admin-nav">
+            <div class="nav nav-pills" id="admin-tabs" role="tablist">
+                <button class="nav-link active" id="dashboard-tab" data-bs-toggle="pill" data-bs-target="#dashboard" type="button" role="tab">
+                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                </button>
+                <button class="nav-link" id="users-tab" data-bs-toggle="pill" data-bs-target="#users" type="button" role="tab">
+                    <i class="fas fa-users me-2"></i>Users
+                </button>
+                <button class="nav-link" id="revenue-tab" data-bs-toggle="pill" data-bs-target="#revenue" type="button" role="tab">
+                    <i class="fas fa-chart-line me-2"></i>Revenue
+                </button>
+                <button class="nav-link" id="bot-tab" data-bs-toggle="pill" data-bs-target="#bot" type="button" role="tab">
+                    <i class="fas fa-robot me-2"></i>Bot Control
+                </button>
+                <button class="nav-link" id="payments-tab" data-bs-toggle="pill" data-bs-target="#payments" type="button" role="tab">
+                    <i class="fas fa-credit-card me-2"></i>Payments
+                </button>
+                <button class="nav-link" id="settings-tab" data-bs-toggle="pill" data-bs-target="#settings" type="button" role="tab">
+                    <i class="fas fa-cog me-2"></i>Settings
+                </button>
+            </div>
+        </nav>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="admin-tabContent">
+            <!-- Dashboard Tab -->
+            <div class="tab-pane fade show active" id="dashboard" role="tabpanel">
+                <div class="row mb-4">
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 class="stat-value" id="totalUsers">{{ stats.total_users or 0 }}</h3>
+                                    <p class="stat-label">Total Users</p>
+                                </div>
+                                <i class="fas fa-users stat-icon text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card success">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 class="stat-value">₹<span id="totalRevenue">{{ stats.total_revenue or 0 }}</span></h3>
+                                    <p class="stat-label">Total Revenue</p>
+                                </div>
+                                <i class="fas fa-rupee-sign stat-icon text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card warning">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 class="stat-value" id="totalChats">{{ stats.total_chats or 0 }}</h3>
+                                    <p class="stat-label">Total Chats</p>
+                                </div>
+                                <i class="fas fa-comments stat-icon text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-card danger">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h3 class="stat-value" id="activeUsers">{{ stats.active_users or 0 }}</h3>
+                                    <p class="stat-label">Active Today</p>
+                                </div>
+                                <i class="fas fa-user-clock stat-icon text-danger"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="chart-container">
+                            <h5 class="mb-3"><i class="fas fa-chart-area me-2"></i>Revenue Analytics</h5>
+                            <canvas id="revenueChart" height="100"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="chart-container">
+                            <h5 class="mb-3"><i class="fas fa-chart-pie me-2"></i>User Distribution</h5>
+                            <canvas id="userChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="table-container">
+                            <h5 class="p-3 mb-0"><i class="fas fa-clock me-2"></i>Recent Activity</h5>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>User</th>
+                                        <th>Action</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentActivity">
+                                    <tr>
+                                        <td colspan="5" class="text-center">Loading recent activity...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Tab -->
+            <div class="tab-pane fade" id="users" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4><i class="fas fa-users me-2"></i>User Management</h4>
+                    <div>
+                        <button class="btn btn-primary" onclick="refreshUsers()">
+                            <i class="fas fa-sync-alt me-2"></i>Refresh
+                        </button>
+                        <button class="btn btn-success" onclick="exportUsers()">
+                            <i class="fas fa-download me-2"></i>Export
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" id="userSearch" placeholder="Search users...">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="userFilter">
+                            <option value="">All Users</option>
+                            <option value="premium">Premium Users</option>
+                            <option value="active">Active Users</option>
+                            <option value="inactive">Inactive Users</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="userSort">
+                            <option value="created_desc">Newest First</option>
+                            <option value="created_asc">Oldest First</option>
+                            <option value="earnings_desc">Highest Earnings</option>
+                            <option value="chats_desc">Most Active</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-primary w-100" onclick="applyUserFilters()">
+                            <i class="fas fa-filter"></i> Apply
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Balance</th>
+                                <th>Earnings</th>
+                                <th>Chats</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                            <tr>
+                                <td colspan="7" class="text-center">Loading users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Revenue Tab -->
+            <div class="tab-pane fade" id="revenue" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4><i class="fas fa-chart-line me-2"></i>Revenue Analytics</h4>
+                    <div>
+                        <select class="form-select d-inline-block w-auto me-2" id="revenuePeriod">
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month" selected>This Month</option>
+                            <option value="year">This Year</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="updateRevenueData()">
+                            <i class="fas fa-sync-alt me-2"></i>Update
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card success">
+                            <h4 class="stat-value">₹<span id="todayRevenue">0</span></h4>
+                            <p class="stat-label">Today's Revenue</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h4 class="stat-value">₹<span id="monthRevenue">0</span></h4>
+                            <p class="stat-label">This Month</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card warning">
+                            <h4 class="stat-value" id="pendingPayouts">0</h4>
+                            <p class="stat-label">Pending Payouts</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card danger">
+                            <h4 class="stat-value">₹<span id="netProfit">0</span></h4>
+                            <p class="stat-label">Net Profit</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h5 class="mb-3">Revenue Breakdown</h5>
+                    <canvas id="revenueBreakdownChart" height="100"></canvas>
+                </div>
+
+                <div class="table-container">
+                    <h5 class="p-3 mb-0">Revenue Transactions</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>User</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Fee</th>
+                                <th>Net</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="revenueTable">
+                            <tr>
+                                <td colspan="7" class="text-center">Loading revenue data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bot Control Tab -->
+            <div class="tab-pane fade" id="bot" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="control-panel">
+                            <h5><i class="fas fa-robot me-2"></i>Telegram Bot Control</h5>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span>Bot Status:</span>
+                                    <span id="botStatus" class="badge bg-success">Online</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-success control-button" onclick="startBot()">
+                                <i class="fas fa-play me-2"></i>Start Bot
+                            </button>
+                            <button class="btn btn-warning control-button" onclick="restartBot()">
+                                <i class="fas fa-redo me-2"></i>Restart Bot
+                            </button>
+                            <button class="btn btn-danger control-button" onclick="stopBot()">
+                                <i class="fas fa-stop me-2"></i>Stop Bot
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="control-panel">
+                            <h5><i class="fas fa-cogs me-2"></i>Bot Settings</h5>
+                            <div class="mb-3">
+                                <label class="form-label">Welcome Message</label>
+                                <textarea class="form-control" id="welcomeMessage" rows="3">Welcome to {{ app_name }}! 🤖</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Default Model</label>
+                                <select class="form-select" id="defaultModel">
+                                    <option value="ganesh-free">Ganesh AI Free</option>
+                                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary control-button" onclick="updateBotSettings()">
+                                <i class="fas fa-save me-2"></i>Save Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h5 class="p-3 mb-0">Bot Activity Log</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>User</th>
+                                <th>Command</th>
+                                <th>Model</th>
+                                <th>Response Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="botActivityTable">
+                            <tr>
+                                <td colspan="6" class="text-center">Loading bot activity...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Payments Tab -->
+            <div class="tab-pane fade" id="payments" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4><i class="fas fa-credit-card me-2"></i>Payment Management</h4>
+                    <button class="btn btn-primary" onclick="refreshPayments()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card success">
+                            <h4 class="stat-value" id="successfulPayments">0</h4>
+                            <p class="stat-label">Successful Payments</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card warning">
+                            <h4 class="stat-value" id="pendingPayments">0</h4>
+                            <p class="stat-label">Pending Payments</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card danger">
+                            <h4 class="stat-value" id="failedPayments">0</h4>
+                            <p class="stat-label">Failed Payments</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h4 class="stat-value" id="withdrawalRequests">0</h4>
+                            <p class="stat-label">Withdrawal Requests</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h5 class="p-3 mb-0">Recent Payments</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Purpose</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="paymentsTable">
+                            <tr>
+                                <td colspan="7" class="text-center">Loading payments...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-container mt-4">
+                    <h5 class="p-3 mb-0">Withdrawal Requests</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Request ID</th>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Bank Details</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="withdrawalsTable">
+                            <tr>
+                                <td colspan="7" class="text-center">Loading withdrawals...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-pane fade" id="settings" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="control-panel">
+                            <h5><i class="fas fa-cog me-2"></i>System Settings</h5>
+                            <div class="mb-3">
+                                <label class="form-label">App Name</label>
+                                <input type="text" class="form-control" id="appName" value="{{ app_name }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Domain</label>
+                                <input type="text" class="form-control" id="domain" value="{{ domain }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Referral Bonus (₹)</label>
+                                <input type="number" class="form-control" id="referralBonus" value="10">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Welcome Bonus (₹)</label>
+                                <input type="number" class="form-control" id="welcomeBonus" value="25">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="control-panel">
+                            <h5><i class="fas fa-dollar-sign me-2"></i>Pricing Settings</h5>
+                            <div class="mb-3">
+                                <label class="form-label">GPT-4 Price (₹)</label>
+                                <input type="number" class="form-control" id="gpt4Price" value="2.00" step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Claude Price (₹)</label>
+                                <input type="number" class="form-control" id="claudePrice" value="1.50" step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Gemini Price (₹)</label>
+                                <input type="number" class="form-control" id="geminiPrice" value="1.00" step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">GPT-3.5 Price (₹)</label>
+                                <input type="number" class="form-control" id="gpt35Price" value="0.50" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-panel">
+                    <h5><i class="fas fa-key me-2"></i>API Configuration</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">OpenAI API Key</label>
+                                <input type="password" class="form-control" id="openaiKey" placeholder="sk-...">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Telegram Bot Token</label>
+                                <input type="password" class="form-control" id="telegramToken" placeholder="Bot token...">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Cashfree App ID</label>
+                                <input type="text" class="form-control" id="cashfreeAppId" placeholder="App ID...">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Cashfree Secret Key</label>
+                                <input type="password" class="form-control" id="cashfreeSecret" placeholder="Secret key...">
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveSettings()">
+                        <i class="fas fa-save me-2"></i>Save All Settings
+                    </button>
+                </div>
+
+                <div class="control-panel">
+                    <h5><i class="fas fa-tools me-2"></i>System Actions</h5>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <button class="btn btn-info control-button" onclick="backupDatabase()">
+                                <i class="fas fa-database me-2"></i>Backup Database
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-warning control-button" onclick="clearLogs()">
+                                <i class="fas fa-trash me-2"></i>Clear Logs
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-success control-button" onclick="restartSystem()">
+                                <i class="fas fa-redo me-2"></i>Restart System
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-danger control-button" onclick="emergencyStop()">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Emergency Stop
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="spinner-border text-primary mb-3" role="status"></div>
+                    <h5 id="loadingText">Processing...</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <script>
+        // Global variables
+        let revenueChart, userChart, revenueBreakdownChart;
+        
+        // Initialize admin panel
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            loadDashboardData();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(function() {
+                if (document.querySelector('#dashboard-tab').classList.contains('active')) {
+                    loadDashboardData();
+                }
+            }, 30000);
+        });
+
+        // Initialize charts
+        function initializeCharts() {
+            // Revenue Chart
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            revenueChart = new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Revenue (₹)',
+                        data: [1200, 1900, 3000, 5000, 2000, 3000],
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // User Chart
+            const userCtx = document.getElementById('userChart').getContext('2d');
+            userChart = new Chart(userCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Free Users', 'Premium Users', 'Inactive'],
+                    datasets: [{
+                        data: [65, 25, 10],
+                        backgroundColor: ['#059669', '#2563eb', '#6b7280']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Revenue Breakdown Chart
+            const breakdownCtx = document.getElementById('revenueBreakdownChart').getContext('2d');
+            revenueBreakdownChart = new Chart(breakdownCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Chat Fees', 'Premium Subs', 'Referral Bonus', 'Other'],
+                    datasets: [{
+                        label: 'Revenue (₹)',
+                        data: [15000, 8000, 3000, 1000],
+                        backgroundColor: ['#059669', '#2563eb', '#d97706', '#6b7280']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load dashboard data
+        function loadDashboardData() {
+            fetch('/api/admin/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateDashboardStats(data.stats);
+                        updateRecentActivity(data.recent_activity);
+                    }
+                })
+                .catch(error => console.error('Error loading dashboard data:', error));
+        }
+
+        // Update dashboard statistics
+        function updateDashboardStats(stats) {
+            document.getElementById('totalUsers').textContent = stats.total_users || 0;
+            document.getElementById('totalRevenue').textContent = (stats.total_revenue || 0).toFixed(2);
+            document.getElementById('totalChats').textContent = stats.total_chats || 0;
+            document.getElementById('activeUsers').textContent = stats.active_users || 0;
+            document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+        }
+
+        // Update recent activity table
+        function updateRecentActivity(activities) {
+            const tbody = document.getElementById('recentActivity');
+            if (!activities || activities.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">No recent activity</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = activities.map(activity => `
+                <tr>
+                    <td>${new Date(activity.time).toLocaleString()}</td>
+                    <td>${activity.user}</td>
+                    <td>${activity.action}</td>
+                    <td>₹${activity.amount || 0}</td>
+                    <td><span class="badge bg-${activity.status === 'success' ? 'success' : 'warning'}">${activity.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // Bot control functions
+        function startBot() {
+            showLoading('Starting bot...');
+            fetch('/api/admin/bot/start', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        document.getElementById('botStatus').textContent = 'Online';
+                        document.getElementById('botStatus').className = 'badge bg-success';
+                        showAlert('Bot started successfully!', 'success');
+                    } else {
+                        showAlert('Failed to start bot: ' + data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    showAlert('Error starting bot', 'danger');
+                });
+        }
+
+        function stopBot() {
+            showLoading('Stopping bot...');
+            fetch('/api/admin/bot/stop', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        document.getElementById('botStatus').textContent = 'Offline';
+                        document.getElementById('botStatus').className = 'badge bg-danger';
+                        showAlert('Bot stopped successfully!', 'success');
+                    } else {
+                        showAlert('Failed to stop bot: ' + data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    showAlert('Error stopping bot', 'danger');
+                });
+        }
+
+        function restartBot() {
+            showLoading('Restarting bot...');
+            fetch('/api/admin/bot/restart', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        showAlert('Bot restarted successfully!', 'success');
+                    } else {
+                        showAlert('Failed to restart bot: ' + data.message, 'danger');
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    showAlert('Error restarting bot', 'danger');
+                });
+        }
+
+        // User management functions
+        function refreshUsers() {
+            showLoading('Loading users...');
+            fetch('/api/admin/users')
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        updateUsersTable(data.users);
+                    } else {
+                        showAlert('Failed to load users', 'danger');
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    showAlert('Error loading users', 'danger');
+                });
+        }
+
+        function updateUsersTable(users) {
+            const tbody = document.getElementById('usersTable');
+            if (!users || users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No users found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = users.map(user => `
+                <tr>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar me-2">
+                                <i class="fas fa-user-circle fa-2x text-muted"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">${user.username}</div>
+                                <small class="text-muted">ID: ${user.id}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${user.email}</td>
+                    <td>₹${user.wallet.toFixed(2)}</td>
+                    <td>₹${user.total_earned.toFixed(2)}</td>
+                    <td>${user.chats_count || 0}</td>
+                    <td>
+                        <span class="badge bg-${user.is_active ? 'success' : 'danger'}">
+                            ${user.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                        ${user.is_premium ? '<span class="badge bg-warning ms-1">Premium</span>' : ''}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="viewUser(${user.id})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning me-1" onclick="editUser(${user.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Utility functions
+        function showLoading(text = 'Loading...') {
+            document.getElementById('loadingText').textContent = text;
+            new bootstrap.Modal(document.getElementById('loadingModal')).show();
+        }
+
+        function hideLoading() {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('loadingModal'));
+            if (modal) modal.hide();
+        }
+
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Placeholder functions for other features
+        function exportUsers() { showAlert('Export feature coming soon!', 'info'); }
+        function applyUserFilters() { showAlert('Filter feature coming soon!', 'info'); }
+        function updateRevenueData() { showAlert('Revenue update feature coming soon!', 'info'); }
+        function refreshPayments() { showAlert('Payment refresh feature coming soon!', 'info'); }
+        function updateBotSettings() { showAlert('Bot settings saved!', 'success'); }
+        function saveSettings() { showAlert('Settings saved successfully!', 'success'); }
+        function backupDatabase() { showAlert('Database backup initiated!', 'info'); }
+        function clearLogs() { showAlert('Logs cleared!', 'success'); }
+        function restartSystem() { showAlert('System restart initiated!', 'warning'); }
+        function emergencyStop() { showAlert('Emergency stop activated!', 'danger'); }
+        function viewUser(id) { showAlert(`Viewing user ${id}`, 'info'); }
+        function editUser(id) { showAlert(`Editing user ${id}`, 'info'); }
+        function deleteUser(id) { showAlert(`Deleting user ${id}`, 'warning'); }
+    </script>
+</body>
+</html>

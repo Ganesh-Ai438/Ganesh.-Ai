@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - {{ business_name }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f6fa;
+            color: #333;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        
+        .nav-links a:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .welcome-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .balance-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .balance-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            border-left: 5px solid #667eea;
+        }
+        
+        .balance-amount {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .balance-label {
+            color: #666;
+            font-size: 1.1rem;
+        }
+        
+        .chat-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            background: #f8f9fa;
+            margin-bottom: 20px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+        
+        .user-message {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        
+        .ai-message {
+            background: white;
+            border: 1px solid #ddd;
+            margin-right: auto;
+        }
+        
+        .message-time {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+        }
+        
+        .chat-input button {
+            padding: 15px 25px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        .chat-input button:hover {
+            background: #5a6fd8;
+        }
+        
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .stats-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stats-card h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        
+        .transaction-amount {
+            font-weight: bold;
+            color: #4caf50;
+        }
+        
+        .referral-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .referral-code {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .referral-code:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .chat-input {
+                flex-direction: column;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">🤖 {{ business_name }}</div>
+            <div class="nav-links">
+                <span>Welcome, {{ user.username }}!</span>
+                <a href="/dashboard">Dashboard</a>
+                {% if user.role == 'admin' %}
+                <a href="/admin">Admin Panel</a>
+                {% endif %}
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'error' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="welcome-section">
+            <h1>Welcome to Your Dashboard, {{ user.username }}! 🎉</h1>
+            <p>Start chatting with our AI to earn money. Every message earns you ₹0.05!</p>
+        </div>
+        
+        <div class="balance-cards">
+            <div class="balance-card">
+                <div class="balance-amount">₹{{ "%.2f"|format(user.balance) }}</div>
+                <div class="balance-label">Current Balance</div>
+            </div>
+            <div class="balance-card">
+                <div class="balance-amount">₹{{ "%.2f"|format(user.total_earned) }}</div>
+                <div class="balance-label">Total Earned</div>
+            </div>
+            <div class="balance-card">
+                <div class="balance-amount">{{ recent_chats|length }}</div>
+                <div class="balance-label">Messages Sent</div>
+            </div>
+        </div>
+        
+        <div class="chat-section">
+            <div class="chat-header">
+                <h2>💬 Chat with Ganesh A.I.</h2>
+                <div style="color: #4caf50; font-weight: bold;">Earn ₹0.05 per message!</div>
+            </div>
+            
+            <div class="chat-container" id="chatContainer">
+                <div class="message ai-message">
+                    <strong>Ganesh A.I.:</strong> Hello {{ user.username }}! I'm ready to help you and earn money together. Ask me anything!
+                    <div class="message-time">Just now</div>
+                </div>
+            </div>
+            
+            <div class="chat-input">
+                <input type="text" id="messageInput" placeholder="Type your message here to earn ₹0.05..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()">Send & Earn</button>
+            </div>
+        </div>
+        
+        <div class="referral-section">
+            <h2>🎁 Refer Friends & Earn ₹10 Each!</h2>
+            <p>Share your referral code and earn ₹10 for every friend who joins</p>
+            <div class="referral-code" onclick="copyReferralCode()" title="Click to copy">
+                {{ user.referral_code or 'GANESH' + user.id|string }}
+            </div>
+            <p>Click the code above to copy and share with friends!</p>
+        </div>
+        
+        <div class="stats-section">
+            <div class="stats-card">
+                <h3>📊 Recent Transactions</h3>
+                {% if recent_transactions %}
+                    {% for transaction in recent_transactions %}
+                    <div class="transaction-item">
+                        <div>
+                            <div>{{ transaction.description }}</div>
+                            <div style="font-size: 0.8rem; color: #666;">{{ transaction.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                        <div class="transaction-amount">+₹{{ "%.3f"|format(transaction.amount) }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No transactions yet. Start chatting to earn money!</p>
+                {% endif %}
+            </div>
+            
+            <div class="stats-card">
+                <h3>💬 Recent Chats</h3>
+                {% if recent_chats %}
+                    {% for chat in recent_chats %}
+                    <div class="transaction-item">
+                        <div>
+                            <div>{{ chat.message[:50] }}{% if chat.message|length > 50 %}...{% endif %}</div>
+                            <div style="font-size: 0.8rem; color: #666;">{{ chat.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                        <div class="transaction-amount">+₹{{ "%.3f"|format(chat.earnings) }}</div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p>No chats yet. Send your first message to start earning!</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px; color: #666;">
+            <p>💰 Keep chatting to increase your earnings!</p>
+            <p>Support: {{ support_username }} | UPI: {{ upi_id }}</p>
+        </div>
+    </div>
+    
+    <script>
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            const chatContainer = document.getElementById('chatContainer');
+            
+            // Add user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user-message';
+            userMessage.innerHTML = `
+                <strong>You:</strong> ${message}
+                <div class="message-time">Just now</div>
+            `;
+            chatContainer.appendChild(userMessage);
+            
+            // Clear input
+            input.value = '';
+            
+            // Show typing indicator
+            const typingMessage = document.createElement('div');
+            typingMessage.className = 'message ai-message';
+            typingMessage.innerHTML = '<strong>Ganesh A.I.:</strong> <em>Typing...</em>';
+            chatContainer.appendChild(typingMessage);
+            
+            // Scroll to bottom
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // Send to API
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Remove typing indicator
+                chatContainer.removeChild(typingMessage);
+                
+                if (data.error) {
+                    // Add error message
+                    const errorMessage = document.createElement('div');
+                    errorMessage.className = 'message ai-message';
+                    errorMessage.style.background = '#ffe8e8';
+                    errorMessage.style.border = '1px solid #f44336';
+                    errorMessage.innerHTML = `<strong>Error:</strong> ${data.error}`;
+                    chatContainer.appendChild(errorMessage);
+                } else {
+                    // Add AI response
+                    const aiMessage = document.createElement('div');
+                    aiMessage.className = 'message ai-message';
+                    aiMessage.innerHTML = `
+                        <strong>Ganesh A.I.:</strong> ${data.response}
+                        <div class="message-time">Just now</div>
+                    `;
+                    chatContainer.appendChild(aiMessage);
+                    
+                    // Add earning notification
+                    const earnMessage = document.createElement('div');
+                    earnMessage.className = 'message ai-message';
+                    earnMessage.style.background = '#e8f5e8';
+                    earnMessage.style.border = '1px solid #4caf50';
+                    earnMessage.innerHTML = `
+                        <strong>💰 Earnings Update:</strong> You earned ₹${data.earnings.toFixed(3)}! 
+                        New balance: ₹${data.balance.toFixed(2)}
+                        <div class="message-time">Just now</div>
+                    `;
+                    chatContainer.appendChild(earnMessage);
+                    
+                    // Update balance display
+                    updateBalanceDisplay(data.balance, data.total_earned);
+                }
+                
+                // Scroll to bottom
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            })
+            .catch(error => {
+                // Remove typing indicator
+                chatContainer.removeChild(typingMessage);
+                
+                // Add error message
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'message ai-message';
+                errorMessage.style.background = '#ffe8e8';
+                errorMessage.style.border = '1px solid #f44336';
+                errorMessage.innerHTML = '<strong>Error:</strong> Sorry, something went wrong. Please try again.';
+                chatContainer.appendChild(errorMessage);
+                
+                // Scroll to bottom
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            });
+        }
+        
+        function updateBalanceDisplay(balance, totalEarned) {
+            const balanceCards = document.querySelectorAll('.balance-amount');
+            if (balanceCards.length >= 2) {
+                balanceCards[0].textContent = `₹${balance.toFixed(2)}`;
+                balanceCards[1].textContent = `₹${totalEarned.toFixed(2)}`;
+            }
+        }
+        
+        function copyReferralCode() {
+            const referralCode = document.querySelector('.referral-code').textContent.trim();
+            navigator.clipboard.writeText(referralCode).then(() => {
+                alert('Referral code copied to clipboard!');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = referralCode;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert('Referral code copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>

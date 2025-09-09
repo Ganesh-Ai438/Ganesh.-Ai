@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }} - Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-bg: #1a1a1a;
+            --sidebar-bg: #2c3e50;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            background: var(--sidebar-bg);
+            min-height: 100vh;
+            width: 250px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-menu li {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .sidebar-menu a:hover {
+            background: rgba(255,255,255,0.1);
+            color: #3498db;
+        }
+
+        .sidebar-menu a.active {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .sidebar-menu i {
+            margin-right: 10px;
+            width: 20px;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+
+        .main-content.expanded {
+            margin-left: 70px;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stats-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 15px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .chat-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 18px;
+            border-radius: 20px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: var(--secondary-color);
+            color: white;
+        }
+
+        .message.bot .message-content {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .chat-input {
+            padding: 20px;
+            border-top: 1px solid #dee2e6;
+            background: white;
+            border-radius: 0 0 15px 15px;
+        }
+
+        .model-selector {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .model-card {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .model-card:hover {
+            border-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .model-card.selected {
+            border-color: var(--secondary-color);
+            background: rgba(52, 152, 219, 0.1);
+        }
+
+        .model-card.premium {
+            border-color: var(--warning-color);
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .premium-badge {
+            background: var(--warning-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--secondary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .earnings-alert {
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .toggle-sidebar {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="toggle-sidebar d-md-none" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h4 class="text-white mb-0">
+                <i class="fas fa-robot"></i>
+                <span class="sidebar-text">{{ app_name }}</span>
+            </h4>
+            <small class="text-muted sidebar-text">{{ user.username }}</small>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li>
+                <a href="#" class="menu-item active" data-section="chat">
+                    <i class="fas fa-comments"></i>
+                    <span class="sidebar-text">Chat</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="menu-item" data-section="statistics">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="sidebar-text">Statistics</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="menu-item" data-section="earnings">
+                    <i class="fas fa-coins"></i>
+                    <span class="sidebar-text">Earnings</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="menu-item" data-section="referrals">
+                    <i class="fas fa-users"></i>
+                    <span class="sidebar-text">Referrals</span>
+                </a>
+            </li>
+            <li>
+                <a href="#" class="menu-item" data-section="premium">
+                    <i class="fas fa-crown"></i>
+                    <span class="sidebar-text">Premium</span>
+                </a>
+            </li>
+            {% if user.role == 'admin' %}
+            <li>
+                <a href="#" class="menu-item" data-section="admin">
+                    <i class="fas fa-cog"></i>
+                    <span class="sidebar-text">Admin Panel</span>
+                </a>
+            </li>
+            {% endif %}
+            <li>
+                <a href="{{ url_for('logout') }}">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="sidebar-text">Logout</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Earnings Alert -->
+        <div class="earnings-alert">
+            <h5><i class="fas fa-trophy"></i> You've earned ₹{{ "%.2f"|format(user.total_earned or 0) }} so far!</h5>
+            <p class="mb-0">Keep chatting and referring friends to earn more!</p>
+        </div>
+
+        <!-- Chat Section -->
+        <div id="chat-section" class="content-section">
+            <div class="row">
+                <div class="col-md-4">
+                    <!-- Stats Cards -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="stats-card">
+                                <div class="stats-icon" style="background: var(--success-color);">
+                                    <i class="fas fa-wallet"></i>
+                                </div>
+                                <h6 class="text-muted">Wallet Balance</h6>
+                                <h3 class="text-success">₹{{ "%.2f"|format(user.wallet or 0) }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="stats-card">
+                                <div class="stats-icon" style="background: var(--secondary-color);">
+                                    <i class="fas fa-comments"></i>
+                                </div>
+                                <h6 class="text-muted">Total Chats</h6>
+                                <h3 class="text-primary">{{ user.chats_count or 0 }}</h3>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="stats-card">
+                                <div class="stats-icon" style="background: var(--warning-color);">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <h6 class="text-muted">Referrals</h6>
+                                <h3 class="text-warning">{{ user.referrals_count or 0 }}</h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Model Selector -->
+                    <div class="model-selector">
+                        <h6><i class="fas fa-brain"></i> Choose Your AI Model</h6>
+                        <div class="model-card selected" data-model="ganesh-free">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Ganesh AI Free</strong>
+                                    <small class="d-block text-muted">Basic conversations</small>
+                                </div>
+                                <span class="badge bg-success">Free</span>
+                            </div>
+                        </div>
+                        <div class="model-card premium" data-model="gpt-4-turbo">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>GPT-4 Turbo</strong>
+                                    <small class="d-block text-muted">Advanced AI model</small>
+                                </div>
+                                <span class="premium-badge">Premium</span>
+                            </div>
+                        </div>
+                        <div class="model-card premium" data-model="claude-3-sonnet">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Claude 3 Sonnet</strong>
+                                    <small class="d-block text-muted">Creative & analytical</small>
+                                </div>
+                                <span class="premium-badge">Premium</span>
+                            </div>
+                        </div>
+                        <div class="model-card premium" data-model="gemini-pro">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Gemini Pro</strong>
+                                    <small class="d-block text-muted">Google's advanced AI</small>
+                                </div>
+                                <span class="premium-badge">Premium</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <!-- Chat Container -->
+                    <div class="chat-container">
+                        <div class="chat-header">
+                            <div>
+                                <h5 class="mb-0">
+                                    <i class="fas fa-robot"></i>
+                                    <span id="current-model">Ganesh AI Free</span>
+                                </h5>
+                                <small>Choose an AI model above and start chatting!</small>
+                            </div>
+                            <button class="btn btn-outline-light btn-sm" onclick="clearChat()">
+                                <i class="fas fa-trash"></i> Clear
+                            </button>
+                        </div>
+                        
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="message bot">
+                                <div class="message-content">
+                                    <strong>Hello {{ user.username }}!</strong> I'm Ganesh AI, your advanced AI assistant. I can help you with:
+                                    <br><br>
+                                    🧠 <strong>Intelligent conversations</strong><br>
+                                    📝 <strong>Content creation</strong><br>
+                                    🔧 <strong>Problem solving</strong><br>
+                                    💡 <strong>Creative ideas</strong><br>
+                                    📚 <strong>Learning assistance</strong>
+                                    <br><br>
+                                    Choose an AI model above and start chatting! 🚀
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="loading" id="loadingIndicator">
+                            <div class="spinner"></div>
+                            <p class="mt-2">AI is thinking...</p>
+                        </div>
+                        
+                        <div class="chat-input">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="messageInput" 
+                                       placeholder="Type your message here..." 
+                                       onkeypress="handleKeyPress(event)">
+                                <button class="btn btn-primary" onclick="sendMessage()">
+                                    <i class="fas fa-paper-plane"></i> Send
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Section -->
+        <div id="statistics-section" class="content-section" style="display: none;">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-icon" style="background: var(--success-color);">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <h6 class="text-muted">Total Visits</h6>
+                        <h3 class="text-success">{{ user.visits_count or 0 }}</h3>
+                        <small class="text-muted">Earning: ₹{{ "%.2f"|format((user.visits_count or 0) * 0.01) }}</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-icon" style="background: var(--secondary-color);">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h6 class="text-muted">Total Chats</h6>
+                        <h3 class="text-primary">{{ user.chats_count or 0 }}</h3>
+                        <small class="text-muted">Earning: ₹{{ "%.2f"|format((user.chats_count or 0) * 0.05) }}</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-icon" style="background: var(--warning-color);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h6 class="text-muted">Referrals</h6>
+                        <h3 class="text-warning">{{ user.referrals_count or 0 }}</h3>
+                        <small class="text-muted">Earning: ₹{{ "%.2f"|format((user.referrals_count or 0) * 10) }}</small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-icon" style="background: var(--danger-color);">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h6 class="text-muted">Total Earned</h6>
+                        <h3 class="text-danger">₹{{ "%.2f"|format(user.total_earned or 0) }}</h3>
+                        <small class="text-muted">All time earnings</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Earnings Section -->
+        <div id="earnings-section" class="content-section" style="display: none;">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="stats-card">
+                        <h5><i class="fas fa-coins"></i> Earnings Breakdown</h5>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Visit Earnings:</span>
+                            <strong>₹{{ "%.2f"|format((user.visits_count or 0) * 0.01) }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Chat Earnings:</span>
+                            <strong>₹{{ "%.2f"|format((user.chats_count or 0) * 0.05) }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Referral Earnings:</span>
+                            <strong>₹{{ "%.2f"|format((user.referrals_count or 0) * 10) }}</strong>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>Total Earned:</strong>
+                            <strong class="text-success">₹{{ "%.2f"|format(user.total_earned or 0) }}</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="stats-card">
+                        <h5><i class="fas fa-wallet"></i> Wallet & Withdrawal</h5>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>Current Balance:</span>
+                            <strong class="text-success">₹{{ "%.2f"|format(user.wallet or 0) }}</strong>
+                        </div>
+                        <button class="btn btn-success w-100 mb-2" onclick="requestWithdrawal()">
+                            <i class="fas fa-money-bill-wave"></i> Request Withdrawal
+                        </button>
+                        <small class="text-muted">Minimum withdrawal: ₹100</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Referrals Section -->
+        <div id="referrals-section" class="content-section" style="display: none;">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="stats-card">
+                        <h5><i class="fas fa-link"></i> Your Referral Code</h5>
+                        <hr>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" value="{{ user.referral_code }}" readonly id="referralCode">
+                            <button class="btn btn-outline-secondary" onclick="copyReferralCode()">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" value="{{ request.url_root }}register?ref={{ user.referral_code }}" readonly id="referralLink">
+                            <button class="btn btn-outline-secondary" onclick="copyReferralLink()">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <p class="text-muted">Share your referral code and earn ₹10.0 per referral!</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="stats-card">
+                        <h5><i class="fas fa-users"></i> Referral Stats</h5>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Total Referrals:</span>
+                            <strong>{{ user.referrals_count or 0 }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Referral Earnings:</span>
+                            <strong class="text-success">₹{{ "%.2f"|format((user.referrals_count or 0) * 10) }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Bonus per Referral:</span>
+                            <strong>₹10.0</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Premium Section -->
+        <div id="premium-section" class="content-section" style="display: none;">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="stats-card">
+                        <h5><i class="fas fa-crown text-warning"></i> Premium Features</h5>
+                        <hr>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success"></i> Access to GPT-4 Turbo</li>
+                            <li><i class="fas fa-check text-success"></i> Claude 3 Sonnet</li>
+                            <li><i class="fas fa-check text-success"></i> Gemini Pro</li>
+                            <li><i class="fas fa-check text-success"></i> Unlimited chats</li>
+                            <li><i class="fas fa-check text-success"></i> Priority support</li>
+                            <li><i class="fas fa-check text-success"></i> Advanced features</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="stats-card">
+                        <h5><i class="fas fa-credit-card"></i> Subscription Plans</h5>
+                        <hr>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                <div>
+                                    <strong>Monthly Plan</strong>
+                                    <small class="d-block text-muted">₹99/month</small>
+                                </div>
+                                <button class="btn btn-warning" onclick="subscribePremium('monthly')">
+                                    Subscribe
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                <div>
+                                    <strong>Yearly Plan</strong>
+                                    <small class="d-block text-muted">₹999/year (Save ₹189!)</small>
+                                </div>
+                                <button class="btn btn-warning" onclick="subscribePremium('yearly')">
+                                    Subscribe
+                                </button>
+                            </div>
+                        </div>
+                        {% if user.premium_until %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-crown"></i> Premium active until: {{ user.premium_until.strftime('%Y-%m-%d') }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Panel Section -->
+        {% if user.role == 'admin' %}
+        <div id="admin-section" class="content-section" style="display: none;">
+            <div class="row">
+                <div class="col-12">
+                    <div class="stats-card">
+                        <h5><i class="fas fa-cog"></i> Admin Control Panel</h5>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <button class="btn btn-primary w-100 mb-2" onclick="viewAllUsers()">
+                                    <i class="fas fa-users"></i> All Users
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-success w-100 mb-2" onclick="viewRevenue()">
+                                    <i class="fas fa-chart-line"></i> Revenue
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-warning w-100 mb-2" onclick="manageBot()">
+                                    <i class="fas fa-robot"></i> Bot Control
+                                </button>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-info w-100 mb-2" onclick="systemSettings()">
+                                    <i class="fas fa-cogs"></i> Settings
+                                </button>
+                            </div>
+                        </div>
+                        <div id="adminContent" class="mt-4">
+                            <!-- Admin content will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentModel = 'ganesh-free';
+        let chatHistory = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Ganesh A.I. Dashboard loaded successfully!');
+            loadChatHistory();
+        });
+
+        // Sidebar functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle('show');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+            }
+        }
+
+        // Menu navigation
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all items
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                
+                // Add active class to clicked item
+                this.classList.add('active');
+                
+                // Hide all sections
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                
+                // Show selected section
+                const sectionId = this.dataset.section + '-section';
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.style.display = 'block';
+                }
+            });
+        });
+
+        // Model selection
+        document.querySelectorAll('.model-card').forEach(card => {
+            card.addEventListener('click', function() {
+                // Remove selected class from all cards
+                document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
+                
+                // Add selected class to clicked card
+                this.classList.add('selected');
+                
+                // Update current model
+                currentModel = this.dataset.model;
+                document.getElementById('current-model').textContent = this.querySelector('strong').textContent;
+                
+                // Check if premium model
+                if (this.classList.contains('premium')) {
+                    // Check if user has premium
+                    {% if not user.premium_until or user.premium_until < moment().utc() %}
+                    if (confirm('This is a premium model. Would you like to subscribe to premium?')) {
+                        showSection('premium');
+                    } else {
+                        // Revert to free model
+                        document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
+                        document.querySelector('[data-model="ganesh-free"]').classList.add('selected');
+                        currentModel = 'ganesh-free';
+                        document.getElementById('current-model').textContent = 'Ganesh AI Free';
+                    }
+                    {% endif %}
+                }
+            });
+        });
+
+        // Chat functionality
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Show loading
+            document.getElementById('loadingIndicator').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        model: currentModel
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    addMessage(data.response, 'bot');
+                    
+                    // Update stats if provided
+                    if (data.stats) {
+                        updateStats(data.stats);
+                    }
+                } else {
+                    addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+                }
+            } catch (error) {
+                console.error('Chat error:', error);
+                addMessage('Sorry, I encountered a connection error. Please try again.', 'bot');
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        }
+
+        function addMessage(content, sender) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.innerHTML = content.replace(/\n/g, '<br>');
+            
+            messageDiv.appendChild(messageContent);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Save to history
+            chatHistory.push({ content, sender, timestamp: new Date() });
+            saveChatHistory();
+        }
+
+        function clearChat() {
+            if (confirm('Are you sure you want to clear the chat history?')) {
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="message bot">
+                        <div class="message-content">
+                            Chat cleared! How can I help you today?
+                        </div>
+                    </div>
+                `;
+                chatHistory = [];
+                saveChatHistory();
+            }
+        }
+
+        function loadChatHistory() {
+            const saved = localStorage.getItem('ganesh_chat_history');
+            if (saved) {
+                chatHistory = JSON.parse(saved);
+                // Restore last few messages
+                const recentMessages = chatHistory.slice(-10);
+                const messagesContainer = document.getElementById('chatMessages');
+                messagesContainer.innerHTML = '';
+                
+                recentMessages.forEach(msg => {
+                    addMessage(msg.content, msg.sender);
+                });
+            }
+        }
+
+        function saveChatHistory() {
+            localStorage.setItem('ganesh_chat_history', JSON.stringify(chatHistory.slice(-50))); // Keep last 50 messages
+        }
+
+        function updateStats(stats) {
+            // Update wallet balance
+            const walletElements = document.querySelectorAll('.wallet-balance');
+            walletElements.forEach(el => {
+                el.textContent = `₹${stats.wallet.toFixed(2)}`;
+            });
+            
+            // Update other stats as needed
+            if (stats.chats_count !== undefined) {
+                document.querySelector('.chats-count').textContent = stats.chats_count;
+            }
+        }
+
+        // Utility functions
+        function copyReferralCode() {
+            const codeInput = document.getElementById('referralCode');
+            codeInput.select();
+            document.execCommand('copy');
+            alert('Referral code copied to clipboard!');
+        }
+
+        function copyReferralLink() {
+            const linkInput = document.getElementById('referralLink');
+            linkInput.select();
+            document.execCommand('copy');
+            alert('Referral link copied to clipboard!');
+        }
+
+        function requestWithdrawal() {
+            const amount = prompt('Enter withdrawal amount (minimum ₹100):');
+            if (amount && parseFloat(amount) >= 100) {
+                // Send withdrawal request
+                fetch('/api/withdrawal', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ amount: parseFloat(amount) })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Withdrawal request submitted successfully!');
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+            }
+        }
+
+        function subscribePremium(plan) {
+            fetch('/api/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ plan: plan })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.payment_url;
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            });
+        }
+
+        // Admin functions
+        {% if user.role == 'admin' %}
+        function viewAllUsers() {
+            fetch('/api/admin/users')
+                .then(response => response.json())
+                .then(data => {
+                    const content = document.getElementById('adminContent');
+                    let html = '<h6>All Users</h6><div class="table-responsive"><table class="table table-striped"><thead><tr><th>Username</th><th>Email</th><th>Wallet</th><th>Total Earned</th><th>Referrals</th><th>Status</th></tr></thead><tbody>';
+                    
+                    data.users.forEach(user => {
+                        html += `<tr>
+                            <td>${user.username}</td>
+                            <td>${user.email}</td>
+                            <td>₹${user.wallet.toFixed(2)}</td>
+                            <td>₹${user.total_earned.toFixed(2)}</td>
+                            <td>${user.referrals_count}</td>
+                            <td><span class="badge ${user.is_active ? 'bg-success' : 'bg-danger'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+                        </tr>`;
+                    });
+                    
+                    html += '</tbody></table></div>';
+                    content.innerHTML = html;
+                });
+        }
+
+        function viewRevenue() {
+            fetch('/api/admin/revenue')
+                .then(response => response.json())
+                .then(data => {
+                    const content = document.getElementById('adminContent');
+                    content.innerHTML = `
+                        <h6>Revenue Statistics</h6>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h5>₹${data.total_revenue.toFixed(2)}</h5>
+                                        <small>Total Revenue</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h5>₹${data.today_revenue.toFixed(2)}</h5>
+                                        <small>Today's Revenue</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h5>${data.total_users}</h5>
+                                        <small>Total Users</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h5>${data.active_users}</h5>
+                                        <small>Active Users</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+        }
+
+        function manageBot() {
+            const content = document.getElementById('adminContent');
+            content.innerHTML = `
+                <h6>Bot Management</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <button class="btn btn-success w-100 mb-2" onclick="startBot()">
+                            <i class="fas fa-play"></i> Start Bot
+                        </button>
+                        <button class="btn btn-danger w-100 mb-2" onclick="stopBot()">
+                            <i class="fas fa-stop"></i> Stop Bot
+                        </button>
+                        <button class="btn btn-info w-100 mb-2" onclick="botStatus()">
+                            <i class="fas fa-info"></i> Bot Status
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="botStatusInfo">
+                            <p>Click "Bot Status" to check current status</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function startBot() {
+            fetch('/api/admin/bot/start', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    botStatus();
+                });
+        }
+
+        function stopBot() {
+            fetch('/api/admin/bot/stop', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    botStatus();
+                });
+        }
+
+        function botStatus() {
+            fetch('/api/admin/bot/status')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('botStatusInfo').innerHTML = `
+                        <div class="alert ${data.running ? 'alert-success' : 'alert-danger'}">
+                            <strong>Status:</strong> ${data.running ? 'Running' : 'Stopped'}<br>
+                            <strong>Users:</strong> ${data.total_users}<br>
+                            <strong>Messages Today:</strong> ${data.messages_today}
+                        </div>
+                    `;
+                });
+        }
+
+        function systemSettings() {
+            const content = document.getElementById('adminContent');
+            content.innerHTML = `
+                <h6>System Settings</h6>
+                <form onsubmit="updateSettings(event)">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Visit Pay Rate (₹)</label>
+                                <input type="number" class="form-control" name="visit_pay_rate" value="0.01" step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Chat Pay Rate (₹)</label>
+                                <input type="number" class="form-control" name="chat_pay_rate" value="0.05" step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Referral Bonus (₹)</label>
+                                <input type="number" class="form-control" name="referral_bonus" value="10.0" step="0.01">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Premium Monthly (₹)</label>
+                                <input type="number" class="form-control" name="premium_monthly" value="99.0" step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Premium Yearly (₹)</label>
+                                <input type="number" class="form-control" name="premium_yearly" value="999.0" step="0.01">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Minimum Withdrawal (₹)</label>
+                                <input type="number" class="form-control" name="min_withdrawal" value="100.0" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Settings</button>
+                </form>
+            `;
+        }
+
+        function updateSettings(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const settings = Object.fromEntries(formData);
+            
+            fetch('/api/admin/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(settings)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            });
+        }
+        {% endif %}
+
+        // Error handling
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript error:', e.error);
+            // Auto-fix common errors
+            if (e.error.message.includes('fetch')) {
+                console.log('Network error detected, retrying...');
+                // Implement retry logic
+            }
+        });
+
+        // Auto-refresh stats every 30 seconds
+        setInterval(function() {
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateStats(data.stats);
+                    }
+                })
+                .catch(error => console.log('Stats update failed:', error));
+        }, 30000);
+    </script>
+</body>
+</html>
