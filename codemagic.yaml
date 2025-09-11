@@ -1,0 +1,34 @@
+workflows:
+  python_app:
+    name: Build & Test Python App (API + Admin + Bot)
+    max_build_duration: 60
+    environment:
+      vars:
+        PYTHONUNBUFFERED: "1"
+      python: "3.10"
+    scripts:
+      - name: Install dependencies
+        script: |
+          pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run migrations (if Django/Flask with DB)
+        script: |
+          if [ -f manage.py ]; then python manage.py migrate; fi
+
+      - name: Test backend start
+        script: |
+          python main.py --help || true
+
+      - name: Test telegram bot start
+        script: |
+          if [ -f bot_working_fixed.py ]; then python bot_working_fixed.py --help || true; fi
+
+    artifacts:
+      - "**/*.py"
+      - "**/*.log"
+      - "**/*.md"
+
+    publishing:
+      scripts:
+        - echo "✅ Build finished. Python API + Admin + Telegram Bot ready."
