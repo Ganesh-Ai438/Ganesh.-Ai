@@ -5,24 +5,29 @@ workflows:
     environment:
       vars:
         PYTHONUNBUFFERED: "1"
-      python: "3.10"
     scripts:
+      - name: Set up Python
+        script: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip
+          python3 --version
+          pip3 --version
+
       - name: Install dependencies
         script: |
-          pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
 
       - name: Run migrations (if Django/Flask with DB)
         script: |
-          if [ -f manage.py ]; then python manage.py migrate; fi
+          if [ -f manage.py ]; then python3 manage.py migrate; fi
 
       - name: Test backend start
         script: |
-          python main.py --help || true
+          if [ -f main.py ]; then python3 main.py --help || true; fi
 
       - name: Test telegram bot start
         script: |
-          if [ -f bot_working_fixed.py ]; then python bot_working_fixed.py --help || true; fi
+          if [ -f bot_working_fixed.py ]; then python3 bot_working_fixed.py --help || true; fi
 
     artifacts:
       - "**/*.py"
